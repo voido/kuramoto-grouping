@@ -1,8 +1,43 @@
 #include <vector>
 
 #include <boost/numeric/odeint.hpp>
+#include <boost/operators.hpp>
 
-typedef std::vector<float> state_type;
+
+struct osc :
+	boost::additive1<osc,
+	boost::additive2<osc, double,
+	boost::multiplicative2<osc, double> > > {
+	osc() : phase(0.0), frequency(0) {}
+	osc(double p, int f) :phase(p), frequency(f) {}
+
+	double phase;
+	int frequency;
+
+	osc& operator+=(const osc &o) {
+		this->phase+=o.phase;
+		return *this;
+	}
+ 	
+	osc operator*(const double d) {
+		osc tmp;
+		tmp.phase = d*this->phase;
+		return tmp;
+  }
+ 
+	osc operator*(const osc &o) {
+		osc tmp;
+		tmp.phase = this->phase*o.phase;
+		return tmp;
+  }
+ 
+	osc& operator*=(const double d) {
+		this->phase *= d;
+		return *this;
+  }
+};
+
+typedef std::vector<osc> state_type;
 
 
 struct osc_ensemble {
