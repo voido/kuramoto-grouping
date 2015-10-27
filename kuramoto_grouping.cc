@@ -110,8 +110,8 @@ struct gnuplot_observer {
 		std::cout << "set yrange [-4:4]" << std::endl;
 	}
 
-  template<class State>
-	void operator()(State &x, double t) {
+  template<class state>
+	void operator()(state &x, double t) {
 		std::cout << "plot '-' u 1:2:3 lc var lt 7 t 'time " << t << "'" << std::endl;
 		size_t n = x.size();
 		for(size_t i=0; i<n; i++) {
@@ -119,6 +119,11 @@ struct gnuplot_observer {
 			std::cout << x[i].phase << " " << freq_from_id(x[i].frequency, layer) << " " << label << std::endl;
 		}
 		std::cout << "e" << std::endl;
+		// some delay during the first updates, only to see what happens
+		if(t<0.02)
+			usleep(2000000);
+		if(t<.5)
+			usleep(200000);
   }
 	int layer;
 };
