@@ -61,6 +61,7 @@ struct osc_ensemble {
 
 			for(size_t j=0; j<n; j++) {
 				tmp += f(i,j)*sin(x[j].phase-mx.phase);
+				support[x[j].frequency] += f(i,j) * 0.5 * (cos(x[j].phase-mx.phase)+1.0);
 			}
 			mdxdt.phase = freq_from_id(mx.frequency) + K*tmp; 
 			int nf = std::distance(support.begin(), std::max_element(support.begin(), support.end()));
@@ -87,6 +88,28 @@ struct osc_ensemble {
 	std::vector<double> support;
 };
 
+
+struct gnuplot_observer {
+  gnuplot_observer() {
+		std::cout << "set term x11" << std::endl;
+		std::cout << "set polar" << std::endl;
+		std::cout << "set size square" << std::endl;
+		std::cout << "set grid polar" << std::endl;
+	}
+
+  template<class State>
+	void operator()(State &x, double t) {
+		std::cout << "plot '-' u 1:2:3 lc var lt 7 t 'time " << t << "'" << std::endl;
+		size_t n = x.size();
+		for(size_t i=0; i<n; i++) {
+			int label = (i<n/2) ? 1 : 3;
+			std::cout << x[i].phase << " " << x[i].frequency << " " << label << std::endl;
+		}
+		std::cout << "e" << std::endl;
+  }
+};
+
+
 int main(int argc, char* argv[]) {
 	
 	size_t units = 100;
@@ -94,6 +117,7 @@ int main(int argc, char* argv[]) {
 	double K = 2.0;
 
 	osc_ensemble net(units, layer, K);
+	gnuplot_observer obs;
 	
 	boost::random::mt19937 rng;
 	rng.seed(static_cast<unsigned int>(std::time(0)));
@@ -109,7 +133,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	boost::numeric::odeint::runge_kutta4<state_type> stepper;
-	boost::numeric::odeint::integrate_const(stepper, boost::ref(net), x, 0.0, 100.0, 0.01);
+	boost::numeric::odeint::integrate_const(stepper, boost::ref(net), x, 0.0, 100.0, 0.01, boost::ref(obs));
 
 	return 0;
 }
