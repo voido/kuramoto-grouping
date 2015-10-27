@@ -95,6 +95,8 @@ struct gnuplot_observer {
 		std::cout << "set polar" << std::endl;
 		std::cout << "set size square" << std::endl;
 		std::cout << "set grid polar" << std::endl;
+		std::cout << "set xrange [-4:4]" << std::endl;
+		std::cout << "set yrange [-4:4]" << std::endl;
 	}
 
   template<class State>
