@@ -49,7 +49,22 @@ struct osc_ensemble {
 	~osc_ensemble() {}
 
 	void operator()(state_type &x, state_type &dxdt, double t) {
+		size_t n = x.size();
 
+		for(size_t i=0; i<n; i++) {
+			const osc &mx = x[i];
+			osc &mdxdt = dxdt[i];
+			double tmp = 0.0;
+
+			for(size_t j=0; j<n; j++) {
+				tmp += f(i,j)*sin(x[j].phase-mx.phase);
+			}
+			mdxdt.phase = K*tmp; //TODO: omega_alpha
+		}
+	}
+
+	double f(size_t i, size_t j) {
+		return 1;
 	}
 
 	size_t num;
