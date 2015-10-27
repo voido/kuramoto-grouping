@@ -60,14 +60,23 @@ struct osc_ensemble {
 			for(size_t j=0; j<n; j++) {
 				tmp += f(i,j)*sin(x[j].phase-mx.phase);
 			}
-			mdxdt.phase = K*tmp; 
+			mdxdt.phase = freq_from_id(mx.frequency) + K*tmp; 
 			int nf = std::distance(support.begin(), std::max_element(support.begin(), support.end()));
 			x[i].frequency = nf;
 		}
 	}
 
 	double f(size_t i, size_t j) {
-		return 1;
+		if(i<num/2 && j<num/2)
+			return 1.0;
+		if(i>=num/2 && j>=num/2)
+			return 1.0;
+
+		return -1.0;
+	}
+
+	double freq_from_id(int i) {
+		return M_PI/2.0 + (double) i/(double) layer;
 	}
 
 	size_t num;
@@ -83,8 +92,12 @@ int main(int argc, char* argv[]) {
 	double K = 2.0;
 
 	osc_ensemble net(units, layer, K);
+	
 	state_type x;
-
+	for(size_t i=0; i<units; i++) {
+		osc o;
+		x.push_back(o);
+	}
 
 	boost::numeric::odeint::runge_kutta4<state_type> stepper;
 	boost::numeric::odeint::integrate_const(stepper, boost::ref(net), x, 0.0, 100.0, 0.01);
