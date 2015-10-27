@@ -41,6 +41,10 @@ struct osc :
 
 typedef std::vector<osc> state_type;
 
+double freq_from_id(int i, int layer) {
+	return M_PI/2.0 + (double) i/(double) layer;
+}
+
 
 struct osc_ensemble {
 	osc_ensemble(size_t num_osc, size_t num_layer, double K) :
@@ -63,7 +67,7 @@ struct osc_ensemble {
 				tmp += f(i,j)*sin(x[j].phase-mx.phase);
 				support[x[j].frequency] += f(i,j) * 0.5 * (cos(x[j].phase-mx.phase)+1.0);
 			}
-			mdxdt.phase = freq_from_id(mx.frequency) + K*tmp; 
+			mdxdt.phase = freq_from_id(mx.frequency, layer) + K*tmp; 
 			int nf = std::distance(support.begin(), std::max_element(support.begin(), support.end()));
 			x[i].frequency = nf;
 		}
@@ -78,10 +82,6 @@ struct osc_ensemble {
 		return -1.0;
 	}
 
-	double freq_from_id(int i) {
-		return M_PI/2.0 + (double) i/(double) layer;
-	}
-
 	size_t num;
 	size_t layer;
 	double K;
@@ -90,7 +90,7 @@ struct osc_ensemble {
 
 
 struct gnuplot_observer {
-  gnuplot_observer() {
+  gnuplot_observer(int l) : layer(l) {
 		std::cout << "set term x11" << std::endl;
 		std::cout << "set polar" << std::endl;
 		std::cout << "set size square" << std::endl;
@@ -103,10 +103,11 @@ struct gnuplot_observer {
 		size_t n = x.size();
 		for(size_t i=0; i<n; i++) {
 			int label = (i<n/2) ? 1 : 3;
-			std::cout << x[i].phase << " " << x[i].frequency << " " << label << std::endl;
+			std::cout << x[i].phase << " " << freq_from_id(x[i].frequency, layer) << " " << label << std::endl;
 		}
 		std::cout << "e" << std::endl;
   }
+	int layer;
 };
 
 
@@ -117,7 +118,7 @@ int main(int argc, char* argv[]) {
 	double K = 2.0;
 
 	osc_ensemble net(units, layer, K);
-	gnuplot_observer obs;
+	gnuplot_observer obs(layer);
 	
 	boost::random::mt19937 rng;
 	rng.seed(static_cast<unsigned int>(std::time(0)));
