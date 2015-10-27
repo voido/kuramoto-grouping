@@ -1,3 +1,5 @@
+#include <iostream>
+#include <cmath>
 #include <vector>
 
 #include <boost/numeric/odeint.hpp>
@@ -64,15 +66,23 @@ struct osc_ensemble {
 			std::fill(support.begin(), support.end(), 0.0);
 
 			for(size_t j=0; j<n; j++) {
-				tmp += f(i,j)*sin(x[j].phase-mx.phase);
+				// hierarchical kuramoto update equation
+				tmp += f(i,j) * sin(x[j].phase-mx.phase);
+				// support the oscillator i receives from each discrete frequency (what I
+				// called "layer" here
 				support[x[j].frequency] += f(i,j) * 0.5 * (cos(x[j].phase-mx.phase)+1.0);
 			}
+			// phase update
 			mdxdt.phase = freq_from_id(mx.frequency, layer) + K*tmp; 
+			// nf is the index of the frequency with the largest support
+			// in an ideal world, this should be done after the phase update
+			// e.g. with an additional observer, but for now it is ok to do it here
 			int nf = std::distance(support.begin(), std::max_element(support.begin(), support.end()));
 			x[i].frequency = nf;
 		}
 	}
 
+	// coupling function among oscillators, only a simple split in two classes
 	double f(size_t i, size_t j) {
 		if(i<num/2 && j<num/2)
 			return 1.0;
@@ -88,7 +98,8 @@ struct osc_ensemble {
 	std::vector<double> support;
 };
 
-
+// observer to enable visualization with gnuplot via "argv[0] | gnuplot"
+// the x11 term should be available on most systems
 struct gnuplot_observer {
   gnuplot_observer(int l) : layer(l) {
 		std::cout << "set term x11" << std::endl;
