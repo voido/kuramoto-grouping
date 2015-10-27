@@ -1,3 +1,8 @@
 # kuramoto-grouping
-simple implementation of a grouping enable kuramoto oscillator network.
-requires boost::odeint and (optional) gnuplot for visualization.
+Simple implementation of a grouping enable kuramoto oscillator network.
+Requires boost::odeint and (optional) gnuplot for visualization.
+To compile:
+g++ -Wall -o kuramoto_grouping kuramoto_grouping.cc
+To run:
+./kuramoto_grouping | gnuplot
+
