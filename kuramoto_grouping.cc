@@ -2,7 +2,9 @@
 
 #include <boost/numeric/odeint.hpp>
 #include <boost/operators.hpp>
-
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
+#include <boost/random/uniform_real.hpp>
 
 struct osc :
 	boost::additive1<osc,
@@ -93,9 +95,16 @@ int main(int argc, char* argv[]) {
 
 	osc_ensemble net(units, layer, K);
 	
+	boost::random::mt19937 rng;
+	rng.seed(static_cast<unsigned int>(std::time(0)));
+	boost::uniform_real<> phase_dist(0.0, 2.0*M_PI);
+	boost::random::uniform_int_distribution<> freq_dist(0,layer-1);
+
 	state_type x;
 	for(size_t i=0; i<units; i++) {
 		osc o;
+		o.phase = phase_dist(rng);
+		o.frequency = freq_dist(rng);
 		x.push_back(o);
 	}
 
